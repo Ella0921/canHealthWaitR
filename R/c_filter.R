@@ -25,16 +25,16 @@ mw_filter <- function(df,
   }
   
   if (!is.null(geo)) {
-    x <- dplyr::filter(x, .data$geo %in% geo)
+    x <- dplyr::filter(x, .data$geo %in% .env$geo)
   }
   
   if (!is.null(stat)) {
-    x <- dplyr::filter(x, .data$stat %in% stat)
+    x <- dplyr::filter(x, .data$stat %in% .env$stat)
   }
   
   if (!is.null(indicator)) {
     if (exact_indicator) {
-      x <- dplyr::filter(x, .data$indicator %in% indicator)
+      x <- dplyr::filter(x, .data$indicator %in% .env$indicator)
     } else {
       pat <- paste(indicator, collapse = "|")
       x <- dplyr::filter(x, grepl(pat, .data$indicator, ignore.case = TRUE))
