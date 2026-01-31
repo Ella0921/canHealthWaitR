@@ -26,7 +26,7 @@ mw_resolve_table <- function(x) {
   out
 }
 
-#' Search within curated tables by keyword (optional)
+#' Search within curated tables by keyword
 #' @param query keyword string
 #' @return matching rows from mw_registry()
 #' @export

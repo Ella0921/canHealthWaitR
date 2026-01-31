@@ -130,14 +130,14 @@ wait_cubes |>
 ```{r}
 meta <- wds_post(
   "https://www150.statcan.gc.ca/t1/wds/rest/getCubeMetadata",
-  list(productId = 41100081)
+  list(productId = 13100961)
 )
 
 names(meta)
 ```
 
 ```{r}
-pid <- 41100081
+pid <- 13100962
 
 dl <- wds_get(glue::glue(
   "https://www150.statcan.gc.ca/t1/wds/rest/getFullTableDownloadCSV/{pid}/en"
@@ -178,7 +178,7 @@ list.files(temp_dir)
 ```{r}
 library(readr)
 
-data_path <- file.path(temp_dir, "41100081.csv")
+data_path <- file.path(temp_dir, "13100962.csv")
 
 wait_data <- read_csv(data_path)
 ```
@@ -224,11 +224,13 @@ unique(wait_data$Indicators)
 ```
 
 ```{r}
-data_path_2 <- file.path(temp_dir, "41100081_MetaData.csv")
+data_path_2 <- file.path(temp_dir, "13100962_MetaData.csv")
 wait_data_2 <- read_csv(data_path_2)
 ```
 
 ```{r}
 glimpse(wait_data_2)
 ```
+wait time in 12 months for consultant
+health indicator experience 
 
