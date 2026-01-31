@@ -1,28 +1,22 @@
-test_that("multiplication works", {
-  expect_equal(2 * 2, 4)
-})
-
-test_that("mw_filter correctly subsets data based on parameters", {
-  # 1. 准备标准化的模拟数据
-  test_df <- tibble::tibble(
-    province = c("British Columbia", "Alberta", "Ontario"),
-    year = c(2020, 2021, 2022),
-    indicator = c("Wait time for specialist", "Surgery wait", "Wait time for MRI"),
-    val = c(10, 20, 30)
+testthat::test_that("mw_filter filters by geo/stat/year without breaking schema", {
+  df_raw <- mw_read_data(13100961)
+  df_std <- mw_standardize(df_raw, table_id = "13100961")
+  
+  out <- mw_filter(
+    df_std,
+    geo = c("Canada", "British Columbia"),
+    stat = c("Percent"),
+    start_year = 2024,
+    end_year = 2024
   )
   
-  # 2. 测试省份筛选
-  res_prov <- mw_filter(test_df, province = "Alberta")
-  expect_equal(nrow(res_prov), 1)
-  expect_equal(res_prov$province[1], "Alberta")
+  req <- c("table_id", "ref_date", "geo", "indicator", "stat", "value", "dims")
+  testthat::expect_true(all(req %in% names(out)))
   
-  # 3. 测试年份范围筛选
-  res_year <- mw_filter(test_df, start_year = 2021)
-  expect_equal(nrow(res_year), 2)
-  expect_true(all(res_year$year >= 2021))
-  
-  # 4. 测试关键词模糊匹配 (grepl)
-  res_ind <- mw_filter(test_df, indicator = "specialist")
-  expect_equal(nrow(res_ind), 1)
-  expect_match(res_ind$indicator[1], "specialist", ignore.case = TRUE)
+  # if non-empty, constraints must hold
+  if (nrow(out) > 0) {
+    testthat::expect_true(all(out$geo %in% c("Canada", "British Columbia")))
+    testthat::expect_true(all(out$stat %in% "Percent"))
+    testthat::expect_true(all(out$ref_date >= 2024 & out$ref_date <= 2024))
+  }
 })

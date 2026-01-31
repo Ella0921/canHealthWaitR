@@ -1,16 +1,27 @@
-test_that("multiplication works", {
-  expect_equal(2 * 2, 4)
-})
-
-test_that("mw_standardize renames and converts types correctly", {
-  # 模拟 API 可能返回的各种列名组合
-  df <- data.frame(GEO = "BC", REF_DATE = "2020-01", VALUE = "5.5", indicator_name = "test")
+testthat::test_that("mw_standardize produces plot-ready schema for all target tables", {
+  ids <- c("13100961", "13100962", "41100081")
   
-  result <- mw_standardize(df)
-  
-  # 验证结果
-  expect_s3_class(result, "tbl_df")
-  expect_equal(colnames(result)[1], "province") # 验证重命名
-  expect_equal(result$year[1], 2020)            # 验证年份提取
-  expect_type(result$val, "double")             # 验证数值转换
+  for (id in ids) {
+    df_raw <- mw_read_data(as.numeric(id))
+    df_std <- mw_standardize(df_raw, table_id = id)
+    
+    # required columns
+    req <- c("table_id", "ref_date", "geo", "indicator", "stat", "value", "dims")
+    testthat::expect_true(all(req %in% names(df_std)))
+    
+    # types
+    testthat::expect_true(is.character(df_std$table_id))
+    testthat::expect_true(is.numeric(df_std$ref_date) || is.integer(df_std$ref_date))
+    testthat::expect_true(is.character(df_std$geo))
+    testthat::expect_true(is.character(df_std$indicator))
+    testthat::expect_true(is.character(df_std$stat))
+    testthat::expect_true(is.numeric(df_std$value))
+    testthat::expect_true(is.list(df_std$dims))
+    
+    # basic sanity (not all NA)
+    testthat::expect_true(any(!is.na(df_std$ref_date)))
+    testthat::expect_true(any(nzchar(df_std$geo)))
+    testthat::expect_true(any(nzchar(df_std$indicator)))
+    testthat::expect_true(any(nzchar(df_std$stat)))
+  }
 })
