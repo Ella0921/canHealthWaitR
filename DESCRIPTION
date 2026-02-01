@@ -1,11 +1,17 @@
-Package: Data534
-Title: What the Package Does (One Line, Title Case)
+Package: canHealthWaitR
+Title: Tools for Exploring Canadian Health Care Wait Time Data
 Version: 0.0.0.9000
-Authors@R: 
-    person("First", "Last", , "first.last@example.com", role = c("aut", "cre"))
-Description: What the package does (one paragraph).
-License: `use_mit_license()`, `use_gpl3_license()` or friends to pick a
-    license
+Authors@R: c(
+    person("Yin-Wen", "Tsai", email = "yinwentsai@gmail.com", role = c("aut", "cre")),
+    person("Sasivimol", "Sirijangkapattana", role = "aut"),
+    person("Bingzheng", "Jin", role = "aut"))
+Description: 
+    An R wrapper around Statistics Canada's Web Data Service (WDS) to
+    discover, download, and tidy selected Canadian health care access and wait-time
+    tables. The package focuses on three curated tables related to specialist wait
+    times and health care access experiences, and provides helper functions to return
+    analysis-ready tibbles suitable for visualization workflows.
+License: MIT
 Encoding: UTF-8
 Roxygen: list(markdown = TRUE)
 RoxygenNote: 7.3.3
@@ -18,3 +24,4 @@ Imports:
 Suggests: 
     testthat (>= 3.0.0)
 Config/testthat/edition: 3
+

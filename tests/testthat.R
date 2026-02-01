@@ -7,6 +7,6 @@
 # * https://testthat.r-lib.org/articles/special-files.html
 
 library(testthat)
-library(Data534)
+library(canHealthWaitR)
 
-test_check("Data534")
+test_check("canHealthWaitR")
