@@ -1,8 +1,8 @@
-testthat::skip_if_not_installed("httr2")
-testthat::skip_if_not_installed("readr")
-testthat::skip_if_offline()
-
 testthat::test_that("mw_standardize produces plot-ready schema for all target tables", {
+  testthat::skip_if_not_installed("httr2")
+  testthat::skip_if_not_installed("readr")
+  testthat::skip_if_offline()
+  
   ids <- c("13100961", "13100962", "41100081")
   
   for (id in ids) {
