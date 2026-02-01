@@ -1,0 +1,48 @@
+---
+title: "canHealthWaitR"
+output: rmarkdown::html_vignette
+vignette: >
+  %\VignetteIndexEntry{canHealthWaitR}
+  %\VignetteEngine{knitr::rmarkdown}
+  %\VignetteEncoding{UTF-8}
+---
+
+```{r, include = FALSE}
+knitr::opts_chunk$set(
+  collapse = TRUE,
+  comment = "#>"
+)
+
+library(canHealthWaitR)
+```
+
+## Overview
+
+canHealthWaitR is an R package that provides tools for exploring Canadian
+health care wait time data from Statistics Canada's Web Data Service (WDS).
+
+The package focuses on curated tables related to specialist wait times and
+health care access indicators.
+
+## Example workflow
+
+```{r example_data}
+example_data <- tibble::tibble(
+  specialty = c("Cardiology", "Orthopedics", "Dermatology"),
+  wait_days = c(30, 75, 45)
+)
+
+example_data
+```
+
+```{r summary}
+summary_tbl <- dplyr::summarise(example_data, mean_wait = mean(wait_days))
+summary_tbl
+```
+
+```{r plot}
+ggplot2::ggplot(example_data, ggplot2::aes(x = specialty, y = wait_days)) +
+  ggplot2::geom_col()
+```
+
+
