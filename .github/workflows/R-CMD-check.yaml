@@ -20,8 +20,6 @@ jobs:
           extra-packages: any::rcmdcheck
           needs: check
 
-      - uses: r-lib/actions/check-r-package@v2
-        with:
-          upload-snapshots: true
-          args: c("--no-manual", "--as-cran", "--no-stop-on-warning")
-          error-on: "error"
+      - name: Run R CMD check
+        run: |
+          Rscript -e 'rcmdcheck::rcmdcheck(args = c("--no-manual", "--as-cran", "--no-stop-on-warning"), error_on = "error")'
