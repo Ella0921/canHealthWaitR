@@ -1,3 +1,7 @@
+testthat::skip_if_not_installed("httr2")
+testthat::skip_if_not_installed("readr")
+testthat::skip_if_offline()
+
 testthat::test_that("mw_filter filters by geo/stat/year without breaking schema", {
   df_raw <- mw_read_data(13100961)
   df_std <- mw_standardize(df_raw, table_id = "13100961")
