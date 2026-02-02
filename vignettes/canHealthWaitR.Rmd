@@ -42,7 +42,7 @@ library(ggplot2)
 
 
 ```{r}
-# ls("package:canHealthWaitR")
+ls("package:canHealthWaitR")
 ```
 
 ## Example workflow
@@ -102,8 +102,12 @@ dplyr::glimpse(std)
 ```
 
 
-
-
+### People affected by healthcare wait times
+```{r}
+#' @export
+mw_plot_affected_province <- function(...) { ... }
+mw_plot_affected_province(std, year = 2024)
+```
 
 ### This figure shows the estimated number of people affected by specialist wait times across provinces in 2024. Larger provinces such as Ontario and Quebec naturally report higher absolute counts, reflecting population size rather than relative burden.
 
