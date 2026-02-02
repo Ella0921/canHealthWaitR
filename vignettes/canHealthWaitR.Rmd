@@ -19,14 +19,6 @@ knitr::opts_chunk$set(
 knitr::opts_knit$set(root.dir = normalizePath(".."))
 ```
 
-```{r}
-if (!requireNamespace("devtools", quietly = TRUE)) {
-  install.packages("devtools")
-}
-devtools::load_all()
-```
-
-
 ## Overview
 
 canHealthWaitR is an R package that provides tools for exploring Canadian
@@ -35,14 +27,103 @@ health care wait time data from Statistics Canada's Web Data Service (WDS).
 The package focuses on curated tables related to specialist wait times and
 health care access indicators.
 
-### 1. Discovering curated tables
+```{r}
+knitr::opts_chunk$set(
+  collapse = TRUE,
+  comment = "#>",
+  message = FALSE,
+  warning = FALSE
+)
 
-The package provides a small registry of curated Statistics Canada (WDS) tables.
+library(canHealthWaitR)
+library(dplyr)
+library(ggplot2)
+```
+
 
 ```{r}
-getwd()
-list.files()
-setwd("..")          # 从 vignettes 回到包根目录
-getwd()
-list.files()
+# ls("package:canHealthWaitR")
 ```
+
+## Example workflow
+
+### Discovering curated tables
+
+The package provides a small registry of curated Statistics Canada (WDS) tables.
+Use `mw_list_tables()` to view the available curated options.
+```{r}
+mw_list_tables()
+```
+
+
+### We can resolve a table using its `table_key` (recommended) or by searching keywords.
+### Below we resolve a table from the registry:
+```{r}
+# Resolve a table from the registry using its table_key
+tbl <- mw_resolve_table("wait_time")
+tbl
+```
+
+### Downloading and reading data
+```{r}
+pid <- tbl$product_id[[1]]
+raw <- mw_read_data(pid)
+```
+
+### Standardizing the data
+
+Statistics Canada tables vary in column names, encodings, and dimensional
+structure across products. To enable consistent filtering and visualization,
+the package provides a dedicated standardization step.
+
+The `mw_standardize()` function performs the following operations internally:
+
+- Renames and harmonizes key variables (e.g., year, geography, indicators)
+- Converts reference dates to a consistent numeric format
+- Extracts measurement values into a single `value` column
+- Preserves additional dimensions in a nested `dims` column
+- Produces a consistent schema across different tables
+
+This abstraction allows downstream functions to operate on a common data
+structure without requiring users to manually clean each table.
+
+```{r}
+std <- mw_standardize(raw, table_id = pid)
+```
+
+```{r}
+names(std)
+dplyr::glimpse(std)
+```
+```{r}
+# Compare raw vs standardized structure
+dplyr::glimpse(raw)
+dplyr::glimpse(std)
+```
+
+
+
+### People affected by healthcare wait times
+```{r}
+mw_plot_affected_province(std, year = 2024)
+
+```
+### This figure shows the estimated number of people affected by specialist wait times across provinces in 2024. Larger provinces such as Ontario and Quebec naturally report higher absolute counts, reflecting population size rather than relative burden.
+
+### Satisfaction with wait times
+```{r}
+mw_plot_satisfaction_stack(std, year = 2024)
+```
+### Satisfaction responses are grouped into two categories (“Very satisfied or satisfied” vs. “Dissatisfied or very dissatisfied”) to highlight broad differences across provinces.
+
+### Wait duration distribution
+```{r}
+mw_plot_wait_duration_stack(std, year = 2024)
+```
+### Across provinces, the majority of respondents report wait times shorter than three months, although a non-trivial share experience waits of six months or longer.
+
+
+### At the time of writing, the curated tables currently provide complete data for 2024 only. As additional years become available, the same workflow can be used to produce time-series analyses.
+
+
+
