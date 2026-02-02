@@ -7,14 +7,25 @@ vignette: >
   %\VignetteEncoding{UTF-8}
 ---
 
-```{r, include = FALSE}
+```{r}
 knitr::opts_chunk$set(
   collapse = TRUE,
-  comment = "#>"
+  comment = "#>",
+  message = FALSE,
+  warning = FALSE
 )
 
-library(canHealthWaitR)
+# Make sure all chunks run from the package root directory
+knitr::opts_knit$set(root.dir = normalizePath(".."))
 ```
+
+```{r}
+if (!requireNamespace("devtools", quietly = TRUE)) {
+  install.packages("devtools")
+}
+devtools::load_all()
+```
+
 
 ## Overview
 
@@ -24,25 +35,14 @@ health care wait time data from Statistics Canada's Web Data Service (WDS).
 The package focuses on curated tables related to specialist wait times and
 health care access indicators.
 
-## Example workflow
+### 1. Discovering curated tables
 
-```{r example_data}
-example_data <- tibble::tibble(
-  specialty = c("Cardiology", "Orthopedics", "Dermatology"),
-  wait_days = c(30, 75, 45)
-)
+The package provides a small registry of curated Statistics Canada (WDS) tables.
 
-example_data
+```{r}
+getwd()
+list.files()
+setwd("..")          # 从 vignettes 回到包根目录
+getwd()
+list.files()
 ```
-
-```{r summary}
-summary_tbl <- dplyr::summarise(example_data, mean_wait = mean(wait_days))
-summary_tbl
-```
-
-```{r plot}
-ggplot2::ggplot(example_data, ggplot2::aes(x = specialty, y = wait_days)) +
-  ggplot2::geom_col()
-```
-
-
