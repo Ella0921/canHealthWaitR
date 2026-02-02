@@ -11,7 +11,7 @@ Description:
     tables. The package focuses on three curated tables related to specialist wait
     times and health care access experiences, and provides helper functions to return
     analysis-ready tibbles suitable for visualization workflows.
-License: MIT
+License: MIT + file LICENSE
 Encoding: UTF-8
 Roxygen: list(markdown = TRUE)
 RoxygenNote: 7.3.3
@@ -24,4 +24,3 @@ Imports:
 Suggests: 
     testthat (>= 3.0.0)
 Config/testthat/edition: 3
-

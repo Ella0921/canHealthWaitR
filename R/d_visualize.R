@@ -33,50 +33,137 @@ mw_plot_trend <- function(df, color_by = NULL, title = "Trend over time") {
   p
 }
 
+# ===============================
+# Visualization functions
+# ===============================
 
-#' Compare values across groups for a single year (bar chart)
-#'
-#' @param df Standardized/filtered data (output of mw_standardize() or mw_filter())
-#' @param year Single year to compare (e.g., 2022)
-#' @param group_by Column to compare across (default "geo" or you can use "indicator")
-#' @param title Optional plot title
-#'
-#' @return A ggplot object
+# helper: remove Canada total
+mw_filter_province <- function(df) {
+  dplyr::filter(df, geo != "Canada (excluding territories)")
+}
+
+
+#' Bar plot: provinces affected by wait time
 #' @export
-mw_plot_compare <- function(df, year, group_by = "geo", title = NULL) {
-  df <- tibble::as_tibble(df)
+mw_plot_affected_province <- function(std, year = 2024) {
   
-  need <- c("ref_date", "value", group_by)
-  if (!all(need %in% names(df))) {
-    rlang::abort(paste0(
-      "mw_plot_compare(): df must contain ref_date, value, and '", group_by, "' columns"
-    ))
+  d <- std |>
+    dplyr::filter(
+      ref_date == year,
+      stat == "Number of persons",
+      stringr::str_detect(indicator, "affected")
+    ) |>
+    mw_filter_province()
+  
+  ggplot2::ggplot(
+    d,
+    ggplot2::aes(x = value, y = forcats::fct_reorder(geo, value))
+  ) +
+    ggplot2::geom_col(fill = "steelblue") +
+    ggplot2::labs(
+      title = "People affected by healthcare wait times (2024)",
+      x = "Number of persons",
+      y = NULL
+    ) +
+    ggplot2::theme_minimal()
+}
+
+
+#' Stacked (100%) bar: satisfaction vs dissatisfaction by province
+#' Uses "Number of persons" to compute within-province percentages
+#' @export
+mw_plot_satisfaction_stack <- function(std, year = 2024) {
+  suppressPackageStartupMessages({
+    library(dplyr)
+    library(ggplot2)
+    library(forcats)
+    library(scales)
+  })
+  
+  d <- std |>
+    dplyr::filter(
+      ref_date == year,
+      stat == "Number of persons",
+      indicator %in% c(
+        "Satisfaction with wait time - Very satisfied or satisfied",
+        "Satisfaction with wait time - Dissatisfied or very dissatisfied"
+      ),
+      geo != "Canada (excluding territories)",
+      !is.na(value)
+    ) |>
+    group_by(geo) |>
+    mutate(pct = value / sum(value)) |>
+    ungroup()
+  
+  if (nrow(d) == 0) {
+    stop("No rows after filtering. Check indicator names and stat labels with table(std$stat) and unique(std$indicator).")
   }
   
-  if (length(year) != 1) {
-    rlang::abort("mw_plot_compare(): year must be a single value (e.g., 2022)")
+  ggplot(d, aes(x = pct, y = fct_reorder(geo, pct, .fun = sum), fill = indicator)) +
+    geom_col(width = 0.8) +
+    scale_x_continuous(labels = scales::percent_format(accuracy = 1)) +
+    labs(
+      title = paste0("Satisfaction with wait times by province (", year, ")"),
+      x = "Share of respondents",
+      y = NULL,
+      fill = NULL
+    ) +
+    theme_minimal()
+}
+
+
+#' Stacked (100%) bar: wait duration distribution by province
+#' Uses "Number of persons" to compute within-province percentages
+#' @export
+mw_plot_wait_duration_stack <- function(std, year = 2024) {
+  suppressPackageStartupMessages({
+    library(dplyr)
+    library(ggplot2)
+    library(forcats)
+    library(scales)
+  })
+  
+  d <- std |>
+    dplyr::filter(
+      ref_date == year,
+      stat == "Number of persons",
+      indicator %in% c(
+        "Wait time, less than 3 months",
+        "Wait time, 3 months to less than 6 months",
+        "Wait time, 6 months or more"
+      ),
+      geo != "Canada (excluding territories)",
+      !is.na(value)
+    ) |>
+    group_by(geo) |>
+    mutate(pct = value / sum(value)) |>
+    ungroup()
+  
+  if (nrow(d) == 0) {
+    stop(
+      "No rows after filtering. Check stat and indicator labels.\n",
+      "Try: table(std$stat) and unique(std$indicator)"
+    )
   }
   
-  year <- as.integer(year)
+  # Optional: control the order of stack segments (left-to-right)
+  d$indicator <- factor(
+    d$indicator,
+    levels = c(
+      "Wait time, less than 3 months",
+      "Wait time, 3 months to less than 6 months",
+      "Wait time, 6 months or more"
+    )
+  )
   
-  df_year <- dplyr::filter(df, .data$ref_date == year)
-  
-  if (nrow(df_year) == 0) {
-    rlang::abort(paste0("mw_plot_compare(): no rows found for year ", year))
-  }
-  
-  # If multiple rows per group exist (e.g., multiple indicators), summarize to one value
-  df_sum <- df_year |>
-    dplyr::group_by(.data[[group_by]]) |>
-    dplyr::summarise(value = mean(.data$value, na.rm = TRUE), .groups = "drop")
-  
-  if (is.null(title)) {
-    title <- paste0("Comparison by ", group_by, " in ", year)
-  }
-  
-  ggplot2::ggplot(df_sum, ggplot2::aes(x = .data[[group_by]], y = .data$value)) +
-    ggplot2::geom_col() +
-    ggplot2::labs(x = group_by, y = "Value", title = title) +
-    ggplot2::theme_minimal() +
-    ggplot2::theme(axis.text.x = ggplot2::element_text(angle = 45, hjust = 1))
+  ggplot(d, aes(x = pct, y = fct_reorder(geo, pct, .fun = sum), fill = indicator)) +
+    geom_col(width = 0.8) +
+    scale_x_continuous(labels = percent_format(accuracy = 1)) +
+    labs(
+      title = paste0("Distribution of specialist wait times by province (", year, ")"),
+      x = "Share of respondents",
+      y = NULL,
+      fill = "Wait duration"
+    ) +
+    theme_minimal()
 }
