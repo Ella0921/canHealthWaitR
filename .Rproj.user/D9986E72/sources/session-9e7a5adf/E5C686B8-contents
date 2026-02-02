@@ -1,0 +1,212 @@
+---
+title: "canHealthWaitR"
+output: rmarkdown::html_vignette
+vignette: >
+  %\VignetteIndexEntry{canHealthWaitR}
+  %\VignetteEncoding{UTF-8}
+  %\VignetteEngine{knitr::rmarkdown}
+editor_options: 
+  markdown: 
+    wrap: 72
+---
+
+```{r}
+knitr::opts_chunk$set(
+  collapse = TRUE,
+  comment = "#>",
+  message = FALSE,
+  warning = FALSE
+)
+
+# Make sure all chunks run from the package root directory
+knitr::opts_knit$set(root.dir = normalizePath(".."))
+```
+
+## Overview
+
+canHealthWaitR is an R package that provides tools for exploring
+Canadian health care wait time data from Statistics Canada's Web Data
+Service (WDS).
+
+The package focuses on curated tables related to specialist wait times
+and health care access indicators.
+
+```{r}
+# Install canHealthWaitR from GitHub if not already installed
+if (!requireNamespace("canHealthWaitR", quietly = TRUE)) {
+  devtools::install_github("Ella0921/canHealthWaitR")
+}
+
+# Load packages
+library(canHealthWaitR)
+library(dplyr)
+library(ggplot2)
+```
+
+```{r}
+ls("package:canHealthWaitR")
+```
+
+## Example workflow
+
+### Discovering curated tables
+
+The package provides a small registry of curated Statistics Canada (WDS)
+tables. Use `mw_list_tables()` to view the available curated options.
+
+```{r}
+mw_list_tables()
+```
+
+### We can resolve a table using its `table_key` (recommended) or by searching keywords.
+
+### Below we resolve a table from the registry:
+
+```{r}
+# Resolve a table from the registry using its table_key
+tbl <- mw_resolve_table("wait_time")
+tbl
+```
+
+### Downloading and reading data
+
+```{r}
+pid <- tbl$product_id[[1]]
+raw <- mw_read_data(pid)
+```
+
+### Standardizing the data
+
+Statistics Canada tables vary in column names, encodings, and
+dimensional structure across products. To enable consistent filtering
+and visualization, the package provides a dedicated standardization
+step.
+
+The `mw_standardize()` function performs the following operations
+internally:
+
+-   Renames and harmonizes key variables (e.g., year, geography,
+    indicators)
+-   Converts reference dates to a consistent numeric format
+-   Extracts measurement values into a single `value` column
+-   Preserves additional dimensions in a nested `dims` column
+-   Produces a consistent schema across different tables
+
+This abstraction allows downstream functions to operate on a common data
+structure without requiring users to manually clean each table.
+
+```{r}
+std <- mw_standardize(raw, table_id = pid)
+```
+
+```{r}
+names(std)
+dplyr::glimpse(std)
+```
+
+```{r}
+# Compare raw vs standardized structure
+dplyr::glimpse(raw)
+dplyr::glimpse(std)
+```
+
+### People affected by healthcare wait times
+
+```{r}
+library(dplyr)
+library(ggplot2)
+library(scales)
+
+df_aff <- std %>%
+  filter(
+    ref_date == 2024,
+    stat == "Number of persons",
+    indicator == "Life affected by wait time",
+    geo != "Canada (excluding territories)"
+  ) %>%
+  filter(!is.na(value), is.finite(value), value >= 0) %>%   
+  arrange(desc(value))                                    
+
+ggplot(df_aff, aes(x = reorder(geo, value), y = value)) +
+  geom_col(fill = "steelblue") +
+  coord_flip() +
+  labs(
+    title = "People affected by healthcare wait times (2024)",
+    x = NULL,
+    y = "Number of persons"
+  ) +
+  scale_y_continuous(labels = scales::label_number(big.mark = ","))
+
+```
+
+### This figure shows the estimated number of people affected by specialist wait times across provinces in 2024. Larger provinces such as Ontario and Quebec naturally report higher absolute counts, reflecting population size rather than relative burden.
+
+### Satisfaction with wait times
+
+```{r}
+df_sat <- std %>%
+  filter(
+    grepl("Satisfaction", indicator),
+    stat == "Percentage",
+    ref_date == 2024,
+    geo != "Canada (excluding territories)"
+  ) %>%
+  group_by(geo) %>%
+  mutate(share = value / sum(value)) %>%
+  ungroup()
+
+ggplot(df_sat, aes(x = geo, y = share, fill = indicator)) +
+  geom_col(position = "fill") +
+  coord_flip() +
+  scale_y_continuous(labels = scales::percent_format()) +
+  labs(
+    title = "Satisfaction with wait times by province (2024)",
+    x = NULL,
+    y = "Share of respondents",
+    fill = NULL
+  )
+```
+
+### Satisfaction responses are grouped into two categories (“Very satisfied or satisfied” vs. “Dissatisfied or very dissatisfied”) to highlight broad differences across provinces.
+
+### Wait duration distribution
+
+```{r}
+df_wait <- df_wait %>%
+  mutate(
+    indicator = factor(
+      indicator,
+      levels = c(
+        "Wait time, less than 3 months",
+        "Wait time, 3 months to less than 6 months",
+        "Wait time, 6 months or more"
+      )
+    )
+  )
+
+ggplot(df_wait, aes(x = geo, y = share, fill = indicator)) +
+  geom_col(position = "fill") +
+  coord_flip() +
+  scale_y_continuous(
+    labels = scales::percent_format(accuracy = 1)
+  ) +
+  scale_fill_manual(
+    values = c(
+      "Wait time, less than 3 months" = "#4E79A7",  
+      "Wait time, 3 months to less than 6 months" = "#59A14F", 
+      "Wait time, 6 months or more" = "#E15759"   
+    )
+  ) +
+  labs(
+    title = "Distribution of specialist wait times by province (2024)",
+    x = NULL,
+    y = "Share of respondents",
+    fill = "Wait duration"
+  )
+
+
+```
+
+### Across provinces, the majority of respondents report wait times shorter than three months, although a non-trivial share experience waits of six months or longer.
+
+### At the time of writing, the curated tables currently provide complete data for 2024 only. As additional years become available, the same workflow can be used to produce time-series analyses.
