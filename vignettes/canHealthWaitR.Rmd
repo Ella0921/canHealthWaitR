@@ -28,13 +28,12 @@ The package focuses on curated tables related to specialist wait times and
 health care access indicators.
 
 ```{r}
-knitr::opts_chunk$set(
-  collapse = TRUE,
-  comment = "#>",
-  message = FALSE,
-  warning = FALSE
-)
+# Install canHealthWaitR from GitHub if not already installed
+if (!requireNamespace("canHealthWaitR", quietly = TRUE)) {
+  devtools::install_github("Ella0921/canHealthWaitR")
+}
 
+# Load packages
 library(canHealthWaitR)
 library(dplyr)
 library(ggplot2)
@@ -103,23 +102,98 @@ dplyr::glimpse(std)
 
 
 ### People affected by healthcare wait times
+
 ```{r}
-#' @export
-mw_plot_affected_province <- function(...) { ... }
-mw_plot_affected_province(std, year = 2024)
+library(dplyr)
+library(ggplot2)
+library(scales)
+
+df_aff <- std %>%
+  filter(
+    ref_date == 2024,
+    stat == "Number of persons",
+    indicator == "Life affected by wait time",
+    geo != "Canada (excluding territories)"
+  ) %>%
+  filter(!is.na(value), is.finite(value), value >= 0) %>%   
+  arrange(desc(value))                                    
+
+ggplot(df_aff, aes(x = reorder(geo, value), y = value)) +
+  geom_col(fill = "steelblue") +
+  coord_flip() +
+  labs(
+    title = "People affected by healthcare wait times (2024)",
+    x = NULL,
+    y = "Number of persons"
+  ) +
+  scale_y_continuous(labels = scales::label_number(big.mark = ","))
+
 ```
 
 ### This figure shows the estimated number of people affected by specialist wait times across provinces in 2024. Larger provinces such as Ontario and Quebec naturally report higher absolute counts, reflecting population size rather than relative burden.
 
 ### Satisfaction with wait times
+
 ```{r}
-mw_plot_satisfaction_stack(std, year = 2024)
+df_sat <- std %>%
+  filter(
+    grepl("Satisfaction", indicator),
+    stat == "Percentage",
+    ref_date == 2024,
+    geo != "Canada (excluding territories)"
+  ) %>%
+  group_by(geo) %>%
+  mutate(share = value / sum(value)) %>%
+  ungroup()
+
+ggplot(df_sat, aes(x = geo, y = share, fill = indicator)) +
+  geom_col(position = "fill") +
+  coord_flip() +
+  scale_y_continuous(labels = scales::percent_format()) +
+  labs(
+    title = "Satisfaction with wait times by province (2024)",
+    x = NULL,
+    y = "Share of respondents",
+    fill = NULL
+  )
 ```
 ### Satisfaction responses are grouped into two categories (“Very satisfied or satisfied” vs. “Dissatisfied or very dissatisfied”) to highlight broad differences across provinces.
 
 ### Wait duration distribution
 ```{r}
-mw_plot_wait_duration_stack(std, year = 2024)
+df_wait <- df_wait %>%
+  mutate(
+    indicator = factor(
+      indicator,
+      levels = c(
+        "Wait time, less than 3 months",
+        "Wait time, 3 months to less than 6 months",
+        "Wait time, 6 months or more"
+      )
+    )
+  )
+
+ggplot(df_wait, aes(x = geo, y = share, fill = indicator)) +
+  geom_col(position = "fill") +
+  coord_flip() +
+  scale_y_continuous(
+    labels = scales::percent_format(accuracy = 1)
+  ) +
+  scale_fill_manual(
+    values = c(
+      "Wait time, less than 3 months" = "#4E79A7",  
+      "Wait time, 3 months to less than 6 months" = "#59A14F", 
+      "Wait time, 6 months or more" = "#E15759"   
+    )
+  ) +
+  labs(
+    title = "Distribution of specialist wait times by province (2024)",
+    x = NULL,
+    y = "Share of respondents",
+    fill = "Wait duration"
+  )
+
+
 ```
 ### Across provinces, the majority of respondents report wait times shorter than three months, although a non-trivial share experience waits of six months or longer.
 
