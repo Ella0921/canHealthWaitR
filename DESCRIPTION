@@ -17,10 +17,15 @@ Roxygen: list(markdown = TRUE)
 RoxygenNote: 7.3.3
 Imports: 
     dplyr,
-    janitor,
     rlang,
-    stringr,
-    tibble
+    tibble,
+    ggplot2,
+    httr2,
+    purrr,
+    readr
 Suggests: 
+    knitr,
+    rmarkdown,
     testthat (>= 3.0.0)
+VignetteBuilder: knitr
 Config/testthat/edition: 3

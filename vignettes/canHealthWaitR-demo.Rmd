@@ -1,0 +1,8 @@
+---
+title: "Using canHealthWaitR"
+output: rmarkdown::html_vignette
+vignette: >
+  %\VignetteIndexEntry{Using canHealthWaitR}
+  %\VignetteEngine{knitr::rmarkdown}
+  %\VignetteEncoding{UTF-8}
+---
