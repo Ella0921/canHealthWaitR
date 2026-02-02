@@ -22,7 +22,9 @@ Imports:
     ggplot2,
     httr2,
     purrr,
-    readr
+    readr,
+    forcats, 
+    scales
 Suggests: 
     knitr,
     rmarkdown,
