@@ -17,12 +17,8 @@ knitr::opts_chunk$set(
 ```
 
 ```{r}
-# Install canHealthWaitR from GitHub if not already installed
-devtools::install_github("Ella0921/canHealthWaitR")
-
 # Load packages
 library(canHealthWaitR)
-library(dplyr)
 ```
 
 ```{r}
@@ -58,6 +54,8 @@ tbl <- mw_resolve_table("wait_time")
 tbl
 ```
 
+---
+
 ## 2. Download and read a table
 
 ```{r}
@@ -65,6 +63,8 @@ pid <- tbl$product_id[[1]]
 raw <- mw_read_data(pid)
 glimpse(raw)
 ```
+
+---
 
 ## 3. Standardize into a consistent schema
 
@@ -74,6 +74,8 @@ Different StatCan tables vary in dimension names and encodings. `mw_standardize(
 std <- mw_standardize(raw, table_id = pid)
 glimpse(std)
 ```
+
+---
 
 ## 4. Example visualizations
 
@@ -113,6 +115,8 @@ mw_plot_satisfaction_stack(std, year = 2024)
 ```{r}
 mw_plot_wait_duration_stack(std, year = 2024)
 ```
+
+---
 
 ### Notes
 
