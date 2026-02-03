@@ -16,12 +16,6 @@ knitr::opts_chunk$set(
 )
 ```
 
-## Overview
-
-canHealthWaitR is an R package that provides tools for exploring Canadian health care wait time data from Statistics Canada's Web Data Service (WDS).
-
-The package focuses on curated tables related to specialist wait times and health care access indicators.
-
 ```{r}
 # Install canHealthWaitR from GitHub if not already installed
 devtools::install_github("Ella0921/canHealthWaitR")
