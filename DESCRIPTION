@@ -24,7 +24,8 @@ Imports:
     purrr,
     readr,
     forcats, 
-    scales
+    scales,
+    stringr
 Suggests: 
     knitr,
     rmarkdown,
