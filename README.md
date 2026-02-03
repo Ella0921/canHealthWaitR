@@ -1,6 +1,6 @@
 # canHealthWaitR: 
 
-# Exploring Healthcare Wait Times in Canada Using Web-Based Open Data
+### Exploring Healthcare Wait Times in Canada Using Web-Based Open Data
 
 [![](https://github.com/Ella0921/canHealthWaitR/actions/workflows/R-CMD-check.yaml/badge.svg)](https://github.com/Ella0921/canHealthWaitR/actions/workflows/R-CMD-check.yaml)
 
