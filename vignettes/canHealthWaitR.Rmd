@@ -19,6 +19,7 @@ knitr::opts_chunk$set(
 ```{r}
 # Load packages
 library(canHealthWaitR)
+library(dplyr)
 ```
 
 ```{r}
@@ -61,7 +62,7 @@ tbl
 ```{r}
 pid <- tbl$product_id[[1]]
 raw <- mw_read_data(pid)
-glimpse(raw)
+dplyr::glimpse(raw)
 ```
 
 ---
@@ -72,7 +73,7 @@ Different StatCan tables vary in dimension names and encodings. `mw_standardize(
 
 ```{r}
 std <- mw_standardize(raw, table_id = pid)
-glimpse(std)
+dplyr::glimpse(std)
 ```
 
 ---
