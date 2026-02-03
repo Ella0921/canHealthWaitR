@@ -3,3 +3,6 @@
 ^LICENSE\.md$
 ^doc$
 ^Meta$
+^\.github$
+^anaconda_projects$
+

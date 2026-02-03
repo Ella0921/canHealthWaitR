@@ -6,6 +6,15 @@
 \usage{
 mw_plot_affected_province(std, year = 2024)
 }
+\arguments{
+\item{std}{Standardized medwait data (output of mw_standardize() and/or mw_filter()).
+Must include at least: ref_date, stat, indicator, geo, value.}
+
+\item{year}{Integer year to plot (default 2024).}
+}
+\value{
+A ggplot object
+}
 \description{
 Bar plot: provinces affected by wait time
 }
