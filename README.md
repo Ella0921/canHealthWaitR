@@ -1,90 +1,137 @@
-# canHealthWaitR
-Tools for exploring Canadian healthcare wait time / access-to-care indicators using Statistics Canada’s Web Data Service (WDS).
+# canHealthWaitR: Exploring Healthcare Wait Times in Canada Using Web-Based Open Data
+
+[![](https://github.com/Ella0921/canHealthWaitR/actions/workflows/R-CMD-check.yaml/badge.svg)](https://github.com/Ella0921/canHealthWaitR/actions/workflows/R-CMD-check.yaml)
+
+------------------------------------------------------------------------
+
+## Overview
+
+**canHealthWaitR** is an R package that provides a structured and reproducible interface to selected Canadian health care wait time data published by **Statistics Canada** via its **Web Data Service (WDS) API**.
+
+The package wraps raw REST API calls into a small set of consistent R functions, handling data retrieval, minimal wrangling, and standardization so that users can move directly from data access to analysis and visualization.
+
+------------------------------------------------------------------------
 
 ## Motivation & background
+
 Healthcare wait times are a persistent and widely discussed issue in Canada, frequently raised in online communities and public discourse.
 
 Common concerns include long emergency room waits, difficulty accessing primary care, and extended delays for specialist referrals.
 
 Despite the prominence of this issue, healthcare wait time data is often fragmented across multiple public sources, making systematic analysis difficult for non-experts.
 
-## Data source / API
-This package uses **Statistics Canada Web Data Service (WDS)**, an official public RESTful API.
+------------------------------------------------------------------------
 
-Why WDS?
-- Official government source (stable & well-documented)
-- No login, no API key required
-- Data structured into consistent statistical tables (“cubes”)
-- Supports reproducible workflows: **query → tidy data → plot**
+## What problem does this package solve?
+
+Statistics Canada’s WDS API provides powerful access to official data, but:
+
+-   API responses are returned in nested JSON structures
+-   Column names, encodings, and dimensions vary across tables
+-   Substantial preprocessing is required before analysis or plotting
+
+`canHealthWaitR` abstracts these complexities by:
+
+-   Maintaining a curated registry of relevant health wait time tables
+-   Providing a standardized tabular output across products
+-   Offering ready-to-use visualization helpers for common analytical questions
+
+This allows users to focus on **analysis and interpretation**, rather than API mechanics.
+
+------------------------------------------------------------------------
 
 ## Installation
-Install the development version from GitHub:
 
-```r
-# Install development version from GitHub
-# if (!require("devtools")) install.packages("devtools")
+You can install the development version from GitHub:
+
+``` r
+# install.packages("devtools")
 devtools::install_github("Ella0921/canHealthWaitR")
+```
 
-# Load the package
+Then load the package:
+
+``` r
 library(canHealthWaitR)
 ```
-## Quick start
-library(canHealthWaitR)
 
-# 1) Discover tables
-mw_list_tables()
-mw_search_tables(query = "wait")
+------------------------------------------------------------------------
 
-# 2) Inspect metadata (dimensions / members / vectors availability)
-meta <- mw_table_metadata(product_id = "YOUR_PRODUCT_ID")
+## Core workflow
 
-# 3) Retrieve data for a specific table (e.g., Specialized health services wait times)
-df <- mw_get_data(
-  product_id = "13100293", 
-  geography  = "British Columbia",
-  start_year = 2015
-)
+The package is designed around a simple and consistent workflow:
 
-# 4) Standardize + filter
-df_std <- mw_standardize(df)
-df_bc  <- mw_filter(df_std, province = "British Columbia")
+1.  **Discover** curated Statistics Canada tables
 
-# 5) Plot
-mw_plot_trend(df_bc, province = "British Columbia", indicator = "YOUR_INDICATOR")
-mw_plot_compare(df_std, year = 2023, indicator = "YOUR_INDICATOR")
+2.  **Download** raw data via the WDS API
 
-## Main functions
-A) API discovery layer (find the right tables)
-mw_list_tables()
-list packaged “known” wait-time/access tables (curated shortlist)
-mw_search_tables(query = "wait")
-search WDS cube list by keyword (returns productId + title)
-mw_table_metadata(product_id)
-get cube metadata (dimensions, members, vectors availability)
+3.  **Standardize** the data into a common schema
 
-B) Data retrieval layer (turn tables into data)
-mw_get_data(product_id, geography = NULL, indicator = NULL, start_year = NULL, end_year = NULL)
-returns a tidy tibble (minimum wrangling included)
-mw_get_series(vector_id, start_year = NULL, end_year = NULL) (optional)
-retrieve a specific series (vector) over time
+4.  **Filter and visualize** results
 
-C) Cleaning / standardization (make outputs consistent)
-mw_standardize(df)
-standardized column names (province, year, value, indicator, ...)
-mw_filter(df, province = NULL, indicator = NULL, start_year = NULL, end_year = NULL)
-convenience filtering
+------------------------------------------------------------------------
 
-D) Plotting (required for vignette: zero → graph)
-mw_plot_trend(df, province, indicator)
-line plot of trends over time
-mw_plot_compare(df, year, indicator)
-bar chart comparing provinces (or categories)
+## Example
 
-## Notes
-Data availability depends on the selected WDS table (cube) and its dimensions/members.
-If you encounter issues, check mw_table_metadata() first to confirm valid values.
+``` r
+library(canHealthWaitR) 
+library(dplyr)  
+
+# List available curated tables 
+mw_list_tables()  
+
+# Resolve a table of interest 
+tbl <- mw_resolve_table("wait_time")  
+
+# Download raw data 
+raw <- mw_read_data(tbl$product_id)  
+
+# Standardize the dataset 
+std <- mw_standardize(raw, table_id = tbl$product_id)  
+
+# Plot number of people affected by wait times in 2024 
+mw_plot_affected_province(std, year = 2024)
+```
+
+------------------------------------------------------------------------
+
+## Relationship to Statistics Canada WDS
+
+This package is built on top of Statistics Canada’s official\
+**Web Data Service (WDS)** API:
+
+[https://www.statcan.gc.ca/en/developers/wds](https://www.statcan.gc.ca/en/developers/wds?utm_source=chatgpt.com)
+
+`canHealthWaitR` does **not** replicate or modify the source data.\
+It provides a convenience layer for accessing, cleaning, and visualizing selected tables related to health care wait times.
+
+------------------------------------------------------------------------
+
+## Package status
+
+This package was developed as part of the **DATA 534 – Collaborative Software Development**\
+group project.
+
+-   The API wrapper is functional and tested
+
+-   Documentation and vignettes are provided
+
+-   Continuous integration is enabled via GitHub Actions
+
+The package is open to further extension as new data become available.
+
+------------------------------------------------------------------------
+
+## Authors
+
+-   Yin-Wen Tsai
+
+-   Sasivimol Sirijangkapattana
+
+-   Bingzheng Jin
+
+------------------------------------------------------------------------
 
 ## License
+
 MIT License. See `LICENSE` and `LICENSE.md` for details.
-
-
